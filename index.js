@@ -2,7 +2,19 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 
-app.use(morgan('tiny'))
+morgan.token('type',(tokens,req, res)=> {
+  console.log(req.body)
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    tokens.method(req,res) === 'POST'? JSON.stringify(req.body): ''
+  ].join(' ')
+})
+
+app.use(morgan('type'))
 app.use(express.json())
 
 let persons = [
