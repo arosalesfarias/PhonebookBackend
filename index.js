@@ -1,9 +1,9 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
 
 morgan.token('type',(tokens,req, res)=> {
-  console.log(req.body)
   return [
     tokens.method(req, res),
     tokens.url(req, res),
@@ -16,6 +16,8 @@ morgan.token('type',(tokens,req, res)=> {
 
 app.use(morgan('type'))
 app.use(express.json())
+app.use(express.static('dist'))
+app.use(cors())
 
 let persons = [
   {
