@@ -11,7 +11,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:ui": "rm -rf dist && ../FullStackOpen/Part2/phonebook && npm run build && cp -r dist ../../../PhonebookBackend",
+    "build:ui": "rm -rf dist && cd ../FullStackOpen/Part2/phonebook && npm run build && cp -r dist ../../../PhonebookBackend",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
   }
 }
