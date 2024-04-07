@@ -5,12 +5,6 @@ if (process.argv.length<3) {
   process.exit(1)
 }
 
-console.log(process.argv[0])
-console.log(process.argv[1])
-console.log(process.argv[2])
-console.log(process.argv[3])
-console.log(process.argv[4])
-
 const password = process.argv[2]
 
 const url =
