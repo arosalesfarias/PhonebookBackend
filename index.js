@@ -1,16 +1,18 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
 
-morgan.token('type',(tokens,req, res)=> {
+morgan.token('type', (tokens, req, res) => {
   return [
     tokens.method(req, res),
     tokens.url(req, res),
     tokens.status(req, res),
     tokens.res(req, res, 'content-length'), '-',
     tokens['response-time'](req, res), 'ms',
-    tokens.method(req,res) === 'POST'? JSON.stringify(req.body): ''
+    tokens.method(req, res) === 'POST' ? JSON.stringify(req.body) : ''
   ].join(' ')
 })
 
@@ -42,6 +44,32 @@ let persons = [
   }
 ]
 
+const url = process.env.MONGODB_URI
+
+mongoose.set('strictQuery', false)
+mongoose.connect(url)
+  .then(result => {
+    console.log('connected to MongoDB')
+  })
+  .catch(error => {
+    console.log('error connecting to MongoDB:', error.message)
+  })
+
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+})
+
+personSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+const Person = mongoose.model('Person', personSchema)
+
 app.get('/', (request, response) =>
   response.send('<h1>Hello World!</h1>')
 )
@@ -53,7 +81,9 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) =>
-  response.json(persons)
+  Person.find({}).then(persons => {
+    response.json(persons)
+  })
 )
 
 app.get('/api/persons/:id', (request, response) => {
@@ -86,7 +116,7 @@ app.post('/api/persons', (request, response) => {
   }
   if (!person.name || !person.number) return response.status(400).json({ error: 'Name or number missing' })
 
-  const duplicate = persons.find( p => p.name.toLocaleLowerCase() === person.name.toLocaleLowerCase())
+  const duplicate = persons.find(p => p.name.toLocaleLowerCase() === person.name.toLocaleLowerCase())
   if (duplicate) return response.status(400).json({ error: `Person ${person.name} exists` })
 
   persons = persons.concat(person)
