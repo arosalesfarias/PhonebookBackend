@@ -3,7 +3,7 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
-const mongoose = require('mongoose')
+const Person = require('./models/person')
 
 morgan.token('type', (tokens, req, res) => {
   return [
@@ -44,32 +44,6 @@ let persons = [
   }
 ]
 
-const url = process.env.MONGODB_URI
-
-mongoose.set('strictQuery', false)
-mongoose.connect(url)
-  .then(result => {
-    console.log('connected to MongoDB')
-  })
-  .catch(error => {
-    console.log('error connecting to MongoDB:', error.message)
-  })
-
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-})
-
-personSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-})
-
-const Person = mongoose.model('Person', personSchema)
-
 app.get('/', (request, response) =>
   response.send('<h1>Hello World!</h1>')
 )
@@ -101,26 +75,19 @@ app.delete('/api/persons/:id', (request, response) => {
   response.status(204).end()
 })
 
-const generateId = () => {
-  const min = Math.ceil(1);
-  const max = Math.floor(10000000);
-  return Math.floor(Math.random() * (max - min) + min)
-}
-
 app.post('/api/persons', (request, response) => {
   const body = request.body
-  const person = {
-    id: generateId(),
+  const person = new Person({
     name: body.name,
     number: body.number
-  }
+  })
   if (!person.name || !person.number) return response.status(400).json({ error: 'Name or number missing' })
 
-  const duplicate = persons.find(p => p.name.toLocaleLowerCase() === person.name.toLocaleLowerCase())
-  if (duplicate) return response.status(400).json({ error: `Person ${person.name} exists` })
+  // const duplicate = persons.find(p => p.name.toLocaleLowerCase() === person.name.toLocaleLowerCase())
+  // if (duplicate) return response.status(400).json({ error: `Person ${person.name} exists` })
 
   persons = persons.concat(person)
-  response.json(person)
+  person.save().then(savedPerson => response.json(savedPerson))
 })
 
 const PORT = process.env.PORT || 3001
