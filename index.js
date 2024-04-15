@@ -48,10 +48,15 @@ app.get('/', (request, response) =>
   response.send('<h1>Hello World!</h1>')
 )
 
-app.get('/info', (request, response) => {
-  const length = persons.length
-  const now = new Date()
-  response.send(`<p>Phonebook has info for ${length} people</p><p>${now}</p>`)
+app.get('/info', (request, response, next) => {
+  Person.find({})
+    .then(persons => {
+      const length = persons.length
+      const now = new Date()
+      response.send(`<p>Phonebook has info for ${length} people</p><p>${now}</p>`)
+    })
+    .catch(error => next(error))
+
 })
 
 app.get('/api/persons', (request, response, next) =>
@@ -60,12 +65,16 @@ app.get('/api/persons', (request, response, next) =>
     .catch(error => next(error))
 )
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(p => p.id === id)
-  person ?
-    response.json(person)
-    : response.status(404).json({ error: `Person ${id} not found` })
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).json({ error: `Person ${request.params.id} not found` })
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
