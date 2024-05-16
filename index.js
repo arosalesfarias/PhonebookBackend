@@ -71,7 +71,7 @@ app.post('/api/persons', (request, response, next) => {
   // const duplicate = persons.find(p => p.name.toLocaleLowerCase() === person.name.toLocaleLowerCase())
   // if (duplicate) return response.status(400).json({ error: `Person ${person.name} exists` })
 
-  persons = persons.concat(person)
+  //persons = persons.concat(person)
   person.save()
     .then(savedPerson => response.json(savedPerson))
     .catch(error => next(error))
